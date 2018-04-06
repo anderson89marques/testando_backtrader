@@ -1,20 +1,16 @@
-import datetime  # For datetime objects
-import os.path  # To manage paths
-import sys  # To find out the script name (in argv[0])
-
-# Import the backtrader platform
+from datetime import datetime
 import backtrader as bt
+import backtrader.feeds as btfeeds
 
-# Create a Stratey
-class TestStrategy(bt.Strategy):
+
+class SMAStrategy(bt.Strategy):
     params = (
         ('maperiod', 15),
     )
-
     def log(self, txt, dt=None):
-        ''' Logging function fot this strategy'''
-        dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
+       ''' Logging function for this strategy'''
+       dt = dt or self.datas[0].datetime.datetime()
+       print('%s, %s' % (dt.strftime("%d/%m/%Y %H:%M:%S"), txt))
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
@@ -25,15 +21,15 @@ class TestStrategy(bt.Strategy):
         self.buyprice = None
         self.buycomm = None
 
-        # Add a MovingAverageSimple indicator
-        self.sma = bt.indicators.SimpleMovingAverage(
-            self.datas[0], period=self.params.maperiod)
+        self.sma = bt.indicators.SMA(
+            self.datas[0], period=self.params.maperiod
+        )
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
             # Buy/Sell order submitted/accepted to/by broker - Nothing to do
             return
-
+        
         # Check if an order has been completed
         # Attention: broker could reject order if not enough cash
         if order.status in [order.Completed]:
@@ -65,18 +61,17 @@ class TestStrategy(bt.Strategy):
 
         self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
                  (trade.pnl, trade.pnlcomm))
-
+    
     def next(self):
         # Simply log the closing price of the series from the reference
-        self.log('Close, %.2f' % self.dataclose[0])
+        self.log('Close, %.8f' % self.dataclose[0])
 
         # Check if an order is pending ... if yes, we cannot send a 2nd one
         if self.order:
             return
-
+        
         # Check if we are in the market
         if not self.position:
-
             # Not yet ... we MIGHT BUY if ...
             if self.dataclose[0] > self.sma[0]:
 
@@ -85,7 +80,6 @@ class TestStrategy(bt.Strategy):
 
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.buy()
-
         else:
 
             if self.dataclose[0] < self.sma[0]:
@@ -95,41 +89,39 @@ class TestStrategy(bt.Strategy):
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.sell()
 
-
-if __name__ == '__main__':
-    # Create a cerebro entity
+def main():
     cerebro = bt.Cerebro()
+     # Add a strategy
+    cerebro.addstrategy(SMAStrategy)
 
-    # Add a strategy
-    cerebro.addstrategy(TestStrategy)
+    data = btfeeds.GenericCSVData(
+        dataname='binance.csv',
+        fromdate=datetime(2018,3,1),
+        todate=datetime(2018,3,2),
 
-    # Datas are in a subfolder of the samples. Need to find where the script is
-    # because it could have been called from anywhere
-    modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
-    datapath = os.path.join(modpath, 'datas/orcl-1995-2014.txt')
+        dtformat=("%d/%m/%Y %H:%M:%S"),
+        timeframe=bt.TimeFrame.Minutes,
 
-    # Create a Data Feed
-    data = bt.feeds.YahooFinanceCSVData(
-        dataname=datapath,
-        # Do not pass values before this date
-        fromdate=datetime.datetime(2000, 1, 1),
-        # Do not pass values before this date
-        todate=datetime.datetime(2000, 12, 31),
-        # Do not pass values after this date
-        reverse=False)
+        datetime=0,
+        high=1,
+        low=2,
+        open=3,
+        close=4,
+        volume=5,
+        openinterest=-1
+    )
 
-    # Add the Data Feed to Cerebro
     cerebro.adddata(data)
-
-    # Set our desired cash start
-    cerebro.broker.setcash(1000.0)
 
     # Add a FixedSize sizer according to the stake
     cerebro.addsizer(bt.sizers.FixedSize, stake=10)
 
-    # Set the commission
-    cerebro.broker.setcommission(commission=0.0)
+     # Set our desired cash start
+    cerebro.broker.setcash(10000.0)
 
+    # Set the commission
+    cerebro.broker.setcommission(commission=0.00)
+    
     # Print out the starting conditions
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
@@ -138,3 +130,7 @@ if __name__ == '__main__':
 
     # Print out the final result
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    cerebro.plot()
+
+if __name__ == '__main__':
+    main()

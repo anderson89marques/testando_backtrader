@@ -25,4 +25,9 @@ $ pip install -r requirements.txt
 
 ```console
 $ python SMA_example.py
+or
+$ python EMA_example.py
+or
+$ python dual_ema_example.py
+
 ```

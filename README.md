@@ -14,7 +14,7 @@ $ git clone https://github.com/anderson89marques/testando_backtrader
 $ cd testando_backtrader
 ```
 
-- activate your virtual enviroment and install dependencies.(using python >= 3.5)
+- activate your virtual enviroment and install dependencies.
 
 ```console
 $ source /path-to-virtual-env/bin/activate

@@ -1,17 +1,19 @@
 from datetime import datetime
 import backtrader as bt
 import backtrader.feeds as btfeeds
+import backtrader.analyzers as btanalyzers
 
 
 class EMAStrategy(bt.Strategy):
     params = (
+        ('maperiod', 15),
         ('shortperiod', 20),
         ('longperiod', 40),
     )
     def log(self, txt, dt=None):
        ''' Logging function for this strategy'''
        dt = dt or self.datas[0].datetime.datetime()
-       print('%s, %s' % (dt.strftime("%d/%m/%Y %H:%M:%S"), txt))
+       #print('%s, %s' % (dt.strftime("%d/%m/%Y %H:%M:%S"), txt))
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
@@ -65,7 +67,7 @@ class EMAStrategy(bt.Strategy):
         if not trade.isclosed:
             return
 
-        self.log('OPERATION PROFIT, GROSS %.8f, NET %.8f' %
+        print('OPERATION PROFIT, GROSS %.8f, NET %.8f' %
                  (trade.pnl, trade.pnlcomm))
     
     def next(self):
@@ -96,16 +98,63 @@ class EMAStrategy(bt.Strategy):
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.sell()
                 self.invested = False
+    
+    def stop(self):
+        print('(MA Period %2d) Ending Value %.8f' %
+                 (self.params.maperiod, self.broker.getvalue()))
+
+def printTradeAnalysis(analyzer):
+    '''
+    Function to print the Technical Analysis results in a nice format.
+    '''
+    #Get the results we are interested in
+    total_open = analyzer.total.open
+    total_closed = analyzer.total.closed
+    total_won = analyzer.won.total
+    total_lost = analyzer.lost.total
+    win_streak = analyzer.streak.won.longest
+    lose_streak = analyzer.streak.lost.longest
+    pnl_net = round(analyzer.pnl.net.total,2)
+    strike_rate = (total_won / total_closed) * 100
+
+    print("STRIKE RATE")
+    print('Total Open: {}'.format(total_open))
+    print('Total Closed: {}'.format(total_closed))
+    print('Total Won: {}'.format(total_won))
+    print('Total Lost: {}'.format(total_lost))
+    print('Strike Rate: {}'.format(strike_rate))
+    print('Win Streak: {}'.format(win_streak))
+    print('Losing Streak: {}'.format(lose_streak))
+    print('PnL Net: {}'.format(pnl_net))
+    print('')
+    
+ 
+def printSQN(analyzer):
+    print("SQN: System Quality Number")
+    sqn = round(analyzer.sqn,2)
+    print('SQN: {}'.format(sqn))
+    print('')
+
+def printTimeReturn(analyzer):
+    print("TIME RETURN")
+    for key, val in analyzer.items():
+        print('-- ', key, ':', val)
+    print('')
 
 def main():
-    cerebro = bt.Cerebro()
+    cerebro = bt.Cerebro() # stdstats=False
+    cerebro.addanalyzer(bt.analyzers.TimeReturn, timeframe=bt.TimeFrame.Years)
+
      # Add a strategy
     cerebro.addstrategy(EMAStrategy)
-
+    #cerebro.optstrategy(
+    #    EMAStrategy,
+    #    maperiod=range(10, 31)
+    #)
     data = btfeeds.GenericCSVData(
         dataname='binance.csv',
-        fromdate=datetime(2018,3,1),
-        todate=datetime(2018,3,2),
+        fromdate=datetime(2017,7,17),
+        todate=datetime(2017,7,20),
 
         dtformat=("%d/%m/%Y %H:%M:%S"),
         timeframe=bt.TimeFrame.Minutes,
@@ -120,24 +169,38 @@ def main():
     )
 
     cerebro.adddata(data)
-
     # Add a FixedSize sizer according to the stake
-    #cerebro.addsizer(bt.sizers.FixedSize, stake=10)
+    cerebro.addsizer(bt.sizers.PercentSizer, percents=99)
 
      # Set our desired cash start
-    cerebro.broker.setcash(50000.0)
+    cerebro.broker.setcash(0.50)
 
     # Set the commission
-    cerebro.broker.setcommission(commission=0.00)
+    cerebro.broker.setcommission(commission=0.001)
     
     # Print out the starting conditions
     print('Starting Portfolio Value: %.8f' % cerebro.broker.getvalue())
+    
+    # add analyzers
+    # Add the analyzers we are interested in
+    cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
+    cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
+    #cerebro.addanalyzer(btanalyzers.SharpeRatio)
 
     # Run over everything
-    cerebro.run()
-
+    results = cerebro.run()
+    runst = results[0]
     # Print out the final result
     print('Final Portfolio Value: %.8f' % cerebro.broker.getvalue())
+    print('====================')
+    print('== Analyzers')
+    print('====================')
+    # If no name has been specified, the name is the class name lowercased
+    tret_analyzer = runst.analyzers.getbyname('timereturn')
+    printTimeReturn(tret_analyzer.get_analysis())
+    printTradeAnalysis(runst.analyzers.getbyname('ta').get_analysis())
+    printSQN(runst.analyzers.getbyname('sqn').get_analysis())
+    
     cerebro.plot(style='candlestick')
 
 if __name__ == '__main__':

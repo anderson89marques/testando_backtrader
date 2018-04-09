@@ -114,10 +114,10 @@ def main():
     cerebro.adddata(data)
 
     # Add a FixedSize sizer according to the stake
-    cerebro.addsizer(bt.sizers.FixedSize, stake=10)
+    #cerebro.addsizer(bt.sizers.FixedSize, stake=10)
 
      # Set our desired cash start
-    cerebro.broker.setcash(10000.0)
+    cerebro.broker.setcash(50000.0)
 
     # Set the commission
     cerebro.broker.setcommission(commission=0.00)

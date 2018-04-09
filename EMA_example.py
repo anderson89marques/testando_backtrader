@@ -35,7 +35,7 @@ class EMAStrategy(bt.Strategy):
         if order.status in [order.Completed]:
             if order.isbuy():
                 self.log(
-                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                    'BUY EXECUTED, Price: %.8f, Cost: %.8f, Comm %.8f' %
                     (order.executed.price,
                      order.executed.value,
                      order.executed.comm))
@@ -43,7 +43,7 @@ class EMAStrategy(bt.Strategy):
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
             else:  # Sell
-                self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                self.log('SELL EXECUTED, Price: %.8f, Cost: %.8f, Comm %.8f' %
                          (order.executed.price,
                           order.executed.value,
                           order.executed.comm))
@@ -59,7 +59,7 @@ class EMAStrategy(bt.Strategy):
         if not trade.isclosed:
             return
 
-        self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
+        self.log('OPERATION PROFIT, GROSS %.8f, NET %.8f' %
                  (trade.pnl, trade.pnlcomm))
     
     def next(self):
@@ -76,7 +76,7 @@ class EMAStrategy(bt.Strategy):
             if self.dataclose[0] > self.ema[0]:
 
                 # BUY, BUY, BUY!!! (with all possible default parameters)
-                self.log('BUY CREATE, %.2f' % self.dataclose[0])
+                self.log('BUY CREATE, %.8f' % self.dataclose[0])
 
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.buy()
@@ -84,7 +84,7 @@ class EMAStrategy(bt.Strategy):
 
             if self.dataclose[0] < self.ema[0]:
                 # SELL, SELL, SELL!!! (with all possible default parameters)
-                self.log('SELL CREATE, %.2f' % self.dataclose[0])
+                self.log('SELL CREATE, %.8f' % self.dataclose[0])
 
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.sell()
@@ -103,9 +103,9 @@ def main():
         timeframe=bt.TimeFrame.Minutes,
 
         datetime=0,
-        high=1,
-        low=2,
-        open=3,
+        open=1,
+        high=2,
+        low=3,
         close=4,
         volume=5,
         openinterest=-1

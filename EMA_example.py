@@ -123,13 +123,13 @@ def main():
     cerebro.broker.setcommission(commission=0.00)
     
     # Print out the starting conditions
-    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('Starting Portfolio Value: %.8f' % cerebro.broker.getvalue())
 
     # Run over everything
     cerebro.run()
 
     # Print out the final result
-    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('Final Portfolio Value: %.8f' % cerebro.broker.getvalue())
     cerebro.plot(style='candlestick')
 
 if __name__ == '__main__':

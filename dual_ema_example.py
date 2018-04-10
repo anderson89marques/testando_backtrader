@@ -167,14 +167,17 @@ def printAnalyzersInfo(analyzer):
         print('Net Profit: {}'.format(analysis.pnl.net.total))
         print('AVG win: {}'.format(analysis.won.pnl.average))
         print('AVG loss: {}'.format(analysis.lost.pnl.average))
+        print('MAX DRAWN: {}'.format(analysis.lost.pnl.max))
+        import pprint 
+        #pprint.pprint(analysis, depth=20)
     
     if isinstance(analyzer, bt.analyzers.SQN):
         sqn = round(analysis.sqn,2)
         print('SQN: {}'.format(sqn))
 
-    if isinstance(analyzer, bt.analyzers.DrawDown):
-        print('Drawdown: {}'.format(analysis.max.drawdown))
-        print('Moneydown: {}'.format(analysis.max.moneydown))
+    #if isinstance(analyzer, bt.analyzers.DrawDown):
+    #    print('Drawdown: {}'.format(analysis.max.drawdown))
+    #    print('Moneydown: {}'.format(analysis.max.moneydown))
 
 def main():
     cerebro = bt.Cerebro() # stdstats=False

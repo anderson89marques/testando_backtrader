@@ -161,13 +161,14 @@ def printAnalyzersInfo(analyzer):
         total_won = analysis.won.total
         total_lost = analysis.lost.total
         strike_rate = (total_won / total_closed) * 100
-        print(analysis.total)
+        print(analysis.won)
+        print(analysis.lost)
         print('Winning Percent: {}'.format(strike_rate))
         print('Total Trade: {}'.format(total_closed))
         print('Profit Factor: {}'.format(total_won/total_lost))
         print('Net Profit: {}'.format(total_won - total_lost))
-        print('AVG win: {}'.format((total_won/total_closed)*100))
-        print('AVG loss: {}'.format((total_lost/total_closed)*100))
+        print('AVG win: {}'.format(analysis.won.pnl.average))
+        print('AVG loss: {}'.format(analysis.lost.pnl.average))
     
     if isinstance(analyzer, bt.analyzers.SQN):
         sqn = round(analysis.sqn,2)

@@ -141,9 +141,18 @@ def printTimeReturn(analyzer):
         print('-- ', key, ':', val)
     print('')
 
+def printDrawmDown(analyzer):
+    print("DRAWN DOWN")
+    print('-- ','Len: ', analyzer.len)
+    print('-- ', 'DrawDown: ',analyzer.drawdown)
+    print('-- ', 'MoneyDown: ', analyzer.moneydown)
+    print('--', 'MAX:')
+    for key, val in analyzer.max.items():
+        print('---- ', key,':', val)
+    print('')
+
 def main():
     cerebro = bt.Cerebro() # stdstats=False
-    cerebro.addanalyzer(bt.analyzers.TimeReturn, timeframe=bt.TimeFrame.Years)
 
      # Add a strategy
     cerebro.addstrategy(EMAStrategy)
@@ -183,9 +192,11 @@ def main():
     
     # add analyzers
     # Add the analyzers we are interested in
+    cerebro.addanalyzer(bt.analyzers.TimeReturn, timeframe=bt.TimeFrame.Years)
+    cerebro.addanalyzer(bt.analyzers.DrawDown, _name='dd')
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
-    #cerebro.addanalyzer(btanalyzers.SharpeRatio)
+    cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sr')
 
     # Run over everything
     results = cerebro.run()
@@ -200,6 +211,8 @@ def main():
     printTimeReturn(tret_analyzer.get_analysis())
     printTradeAnalysis(runst.analyzers.getbyname('ta').get_analysis())
     printSQN(runst.analyzers.getbyname('sqn').get_analysis())
+    print(runst.analyzers.getbyname('sr').get_analysis())
+    printDrawmDown(runst.analyzers.getbyname('dd').get_analysis())
     
     cerebro.plot(style='candlestick')
 

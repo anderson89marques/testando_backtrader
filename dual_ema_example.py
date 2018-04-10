@@ -161,12 +161,10 @@ def printAnalyzersInfo(analyzer):
         total_won = analysis.won.total
         total_lost = analysis.lost.total
         strike_rate = (total_won / total_closed) * 100
-        print(analysis.won)
-        print(analysis.lost)
         print('Winning Percent: {}'.format(strike_rate))
         print('Total Trade: {}'.format(total_closed))
-        print('Profit Factor: {}'.format(total_won/total_lost))
-        print('Net Profit: {}'.format(total_won - total_lost))
+        print('Profit Factor: {}'.format(analysis.won.pnl.total/analysis.lost.pnl.total))
+        print('Net Profit: {}'.format(analysis.pnl.net.total))
         print('AVG win: {}'.format(analysis.won.pnl.average))
         print('AVG loss: {}'.format(analysis.lost.pnl.average))
     

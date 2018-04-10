@@ -1,8 +1,7 @@
 from datetime import datetime
 import backtrader as bt
 import backtrader.feeds as btfeeds
-import backtrader.analyzers as btanalyzers
-import pprint
+
 
 class EMAStrategy(bt.Strategy):
     params = (
@@ -103,56 +102,6 @@ class EMAStrategy(bt.Strategy):
         print('(MA Period %2d) Ending Value %.8f' %
                  (self.params.maperiod, self.broker.getvalue()))
 
-def printTradeAnalysis(analyzer):
-    '''
-    Function to print the Technical Analysis results in a nice format.
-    '''
-    #Get the results we are interested in
-    total_open = analyzer.total.open
-    total_closed = analyzer.total.closed
-    total_won = analyzer.won.total
-    total_lost = analyzer.lost.total
-    win_streak = analyzer.streak.won.longest
-    lose_streak = analyzer.streak.lost.longest
-    pnl_net = round(analyzer.pnl.net.total,2)
-    strike_rate = (total_won / total_closed) * 100
-
-    print("STRIKE RATE")
-    print('Winning Percent: {}'.format(strike_rate))
-    print('Total Trade: {}'.format(total_closed))
-    print('Profit Factor: {}'.format(total_won/total_lost))
-
-    print('Total Open: {}'.format(total_open))
-    print('Total Won: {}'.format(total_won))
-    print('Total Lost: {}'.format(total_lost))
-    print('Win Streak: {}'.format(win_streak))
-    print('Losing Streak: {}'.format(lose_streak))
-    print('PnL Net: {}'.format(pnl_net))
-    print('')
-    
- 
-def printSQN(analyzer):
-    print("SQN: System Quality Number")
-    sqn = round(analyzer.sqn,2)
-    print('SQN: {}'.format(sqn))
-    print('')
-
-def printTimeReturn(analyzer):
-    print("TIME RETURN")
-    for key, val in analyzer.items():
-        print('-- ', key, ':', val)
-    print('')
-
-def printDrawmDown(analyzer):
-    print("DRAWN DOWN")
-    print('-- ','Len: ', analyzer.len)
-    print('-- ', 'DrawDown: ',analyzer.drawdown)
-    print('-- ', 'MoneyDown: ', analyzer.moneydown)
-    print('--', 'MAX:')
-    for key, val in analyzer.max.items():
-        print('---- ', key,':', val)
-    print('')
-
 def printAnalyzersInfo(analyzer):
     analysis = analyzer.get_analysis()
     if isinstance(analyzer, bt.analyzers.TradeAnalyzer):
@@ -161,23 +110,17 @@ def printAnalyzersInfo(analyzer):
         total_won = analysis.won.total
         total_lost = analysis.lost.total
         strike_rate = (total_won / total_closed) * 100
-        print('Winning Percent: {}'.format(strike_rate))
+        print('Winning Percent: {:6f}'.format(strike_rate))
         print('Total Trade: {}'.format(total_closed))
         print('Profit Factor: {}'.format(analysis.won.pnl.total/analysis.lost.pnl.total))
         print('Net Profit: {}'.format(analysis.pnl.net.total))
         print('AVG win: {}'.format(analysis.won.pnl.average))
         print('AVG loss: {}'.format(analysis.lost.pnl.average))
         print('MAX DRAWN: {}'.format(analysis.lost.pnl.max))
-        import pprint 
-        #pprint.pprint(analysis, depth=20)
-    
+            
     if isinstance(analyzer, bt.analyzers.SQN):
         sqn = round(analysis.sqn,2)
         print('SQN: {}'.format(sqn))
-
-    #if isinstance(analyzer, bt.analyzers.DrawDown):
-    #    print('Drawdown: {}'.format(analysis.max.drawdown))
-    #    print('Moneydown: {}'.format(analysis.max.moneydown))
 
 def main():
     cerebro = bt.Cerebro() # stdstats=False
@@ -209,7 +152,7 @@ def main():
     # Add a FixedSize sizer according to the stake
     cerebro.addsizer(bt.sizers.PercentSizer, percents=99)
 
-     # Set our desired cash start
+    # Set our desired cash start
     cerebro.broker.setcash(0.50)
 
     # Set the commission
@@ -220,12 +163,9 @@ def main():
     
     # add analyzers
     # Add the analyzers we are interested in
-
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
-    cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
     cerebro.addanalyzer(bt.analyzers.Returns, _name="returns")
-
 
     # Run over everything
     results = cerebro.run()
@@ -235,22 +175,10 @@ def main():
     print('====================')
     print('== Analyzers')
     print('====================')
-    analyzers = ["ta","sqn","drawdown","returns"]
-    analyzers_dict = {'ta': printTradeAnalysis, 'sqn': printSQN}
+    analyzers = ["ta","sqn"]
     for name in analyzers:
         printAnalyzersInfo(runst.analyzers.getbyname(name))
     print('---')
-
-    # If no name has been specified, the name is the class name lowercased
-    #tret_analyzer = runst.analyzers.getbyname('timereturn')
-    #printTimeReturn(tret_analyzer.get_analysis())
-    #printTradeAnalysis(runst.analyzers.getbyname('ta').get_analysis())
-    #printSQN(runst.analyzers.getbyname('sqn').get_analysis())
-    #printDrawmDown(runst.analyzers.getbyname('dd').get_analysis())
-    #print(runst.analyzers.getbyname('cm').get_analysis())
-    #printTimeReturn(runst.analyzers.getbyname('vwr').get_analysis())
-    #printTimeReturn(runst.analyzers.getbyname('srq').get_analysis())
-
 
 
 if __name__ == '__main__':

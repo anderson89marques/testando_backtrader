@@ -2,7 +2,7 @@ from datetime import datetime
 import backtrader as bt
 import backtrader.feeds as btfeeds
 import backtrader.analyzers as btanalyzers
-
+import pprint
 
 class EMAStrategy(bt.Strategy):
     params = (
@@ -118,11 +118,13 @@ def printTradeAnalysis(analyzer):
     strike_rate = (total_won / total_closed) * 100
 
     print("STRIKE RATE")
+    print('Winning Percent: {}'.format(strike_rate))
+    print('Total Trade: {}'.format(total_closed))
+    print('Profit Factor: {}'.format(total_won/total_lost))
+
     print('Total Open: {}'.format(total_open))
-    print('Total Closed: {}'.format(total_closed))
     print('Total Won: {}'.format(total_won))
     print('Total Lost: {}'.format(total_lost))
-    print('Strike Rate: {}'.format(strike_rate))
     print('Win Streak: {}'.format(win_streak))
     print('Losing Streak: {}'.format(lose_streak))
     print('PnL Net: {}'.format(pnl_net))
@@ -150,6 +152,27 @@ def printDrawmDown(analyzer):
     for key, val in analyzer.max.items():
         print('---- ', key,':', val)
     print('')
+
+def printAnalyzersInfo(analyzer):
+    analysis = analyzer.get_analysis()
+    if isinstance(analyzer, bt.analyzers.TradeAnalyzer):
+        total_open = analysis.total.open
+        total_closed = analysis.total.closed
+        total_won = analysis.won.total
+        total_lost = analysis.lost.total
+        strike_rate = (total_won / total_closed) * 100
+        print('Winning Percent: {}'.format(strike_rate))
+        print('Total Trade: {}'.format(total_closed))
+        print('Profit Factor: {}'.format(total_won/total_lost))
+        print('Net Profit: {}'.format(total_won - total_lost))
+    
+    if isinstance(analyzer, bt.analyzers.SQN):
+        sqn = round(analysis.sqn,2)
+        print('SQN: {}'.format(sqn))
+
+    if isinstance(analyzer, bt.analyzers.DrawDown):
+        print('Drawdown: {}'.format(analysis.max.drawdown))
+        print('Moneydown: {}'.format(analysis.max.moneydown))
 
 def main():
     cerebro = bt.Cerebro() # stdstats=False
@@ -192,11 +215,12 @@ def main():
     
     # add analyzers
     # Add the analyzers we are interested in
-    cerebro.addanalyzer(bt.analyzers.TimeReturn, timeframe=bt.TimeFrame.Years)
-    cerebro.addanalyzer(bt.analyzers.DrawDown, _name='dd')
+
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
-    cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sr')
+    cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
+    cerebro.addanalyzer(bt.analyzers.Returns, _name="returns")
+
 
     # Run over everything
     results = cerebro.run()
@@ -206,15 +230,23 @@ def main():
     print('====================')
     print('== Analyzers')
     print('====================')
+    analyzers = ["ta","sqn","drawdown","returns"]
+    analyzers_dict = {'ta': printTradeAnalysis, 'sqn': printSQN}
+    for name in analyzers:
+        printAnalyzersInfo(runst.analyzers.getbyname(name))
+    print('---')
+
     # If no name has been specified, the name is the class name lowercased
-    tret_analyzer = runst.analyzers.getbyname('timereturn')
-    printTimeReturn(tret_analyzer.get_analysis())
-    printTradeAnalysis(runst.analyzers.getbyname('ta').get_analysis())
-    printSQN(runst.analyzers.getbyname('sqn').get_analysis())
-    print(runst.analyzers.getbyname('sr').get_analysis())
-    printDrawmDown(runst.analyzers.getbyname('dd').get_analysis())
-    
-    cerebro.plot(style='candlestick')
+    #tret_analyzer = runst.analyzers.getbyname('timereturn')
+    #printTimeReturn(tret_analyzer.get_analysis())
+    #printTradeAnalysis(runst.analyzers.getbyname('ta').get_analysis())
+    #printSQN(runst.analyzers.getbyname('sqn').get_analysis())
+    #printDrawmDown(runst.analyzers.getbyname('dd').get_analysis())
+    #print(runst.analyzers.getbyname('cm').get_analysis())
+    #printTimeReturn(runst.analyzers.getbyname('vwr').get_analysis())
+    #printTimeReturn(runst.analyzers.getbyname('srq').get_analysis())
+
+
 
 if __name__ == '__main__':
     main()

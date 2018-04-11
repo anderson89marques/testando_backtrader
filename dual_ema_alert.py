@@ -3,6 +3,35 @@ import backtrader as bt
 import backtrader.feeds as btfeeds
 
 
+def alert(order):
+    if order.isbuy():
+        print("COMPRA")
+    else:
+        print("VENDA")
+    print("Price: ",order.executed.price)
+    print("Value:",order.executed.value)
+    print("Commission:",order.executed.comm)
+    print("Datetime(float):",order.executed.dt)
+    print("Size:",order.executed.size)
+    print("Exbits datetime(float):",order.executed.exbits[0].dt)
+    print("Exbits size:",order.executed.exbits[0].size)
+    print("Exbits price:",order.executed.exbits[0].price)
+    print("Exbits closed:",order.executed.exbits[0].closed)
+    print("Exbits opened:",order.executed.exbits[0].opened)
+    print("Exbits openedvalue:",order.executed.exbits[0].openedvalue)
+    print("Exbits closedvalue:",order.executed.exbits[0].closedvalue)
+    print("Exbits closedcomm:",order.executed.exbits[0].closedcomm)
+    print("Exbits openedcomm:",order.executed.exbits[0].openedcomm)
+    print("Exbits value:",order.executed.exbits[0].value)
+    print("Exbits comm:",order.executed.exbits[0].comm)
+    print("Exbits pnl:",order.executed.exbits[0].pnl)
+    print("Exbits psize:",order.executed.exbits[0].psize)
+    print("Exbits pprice:",order.executed.exbits[0].pprice)
+    
+    
+    
+
+
 class EMAStrategy(bt.Strategy):
     params = (
         ('maperiod', 15),
@@ -49,6 +78,7 @@ class EMAStrategy(bt.Strategy):
 
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
+                alert(order)
             else:  # Sell
                 self.log('SELL EXECUTED, Price: %.8f, Cost: %.8f, Comm %.8f' %
                          (order.executed.price,

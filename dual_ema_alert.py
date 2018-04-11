@@ -1,36 +1,22 @@
+import datetime as dtime
 from datetime import datetime
 import backtrader as bt
 import backtrader.feeds as btfeeds
 
 
 def alert(order):
+    price = order.executed.exbits[0].price
     if order.isbuy():
-        print("COMPRA")
-    else:
-        print("VENDA")
-    print("Price: ",order.executed.price)
-    print("Value:",order.executed.value)
-    print("Commission:",order.executed.comm)
-    print("Datetime(float):",order.executed.dt)
-    print("Size:",order.executed.size)
-    print("Exbits datetime(float):",order.executed.exbits[0].dt)
-    print("Exbits size:",order.executed.exbits[0].size)
-    print("Exbits price:",order.executed.exbits[0].price)
-    print("Exbits closed:",order.executed.exbits[0].closed)
-    print("Exbits opened:",order.executed.exbits[0].opened)
-    print("Exbits openedvalue:",order.executed.exbits[0].openedvalue)
-    print("Exbits closedvalue:",order.executed.exbits[0].closedvalue)
-    print("Exbits closedcomm:",order.executed.exbits[0].closedcomm)
-    print("Exbits openedcomm:",order.executed.exbits[0].openedcomm)
-    print("Exbits value:",order.executed.exbits[0].value)
-    print("Exbits comm:",order.executed.exbits[0].comm)
-    print("Exbits pnl:",order.executed.exbits[0].pnl)
-    print("Exbits psize:",order.executed.exbits[0].psize)
-    print("Exbits pprice:",order.executed.exbits[0].pprice)
-    
-    
-    
+        print("COMPRE ETH por {:8f}".format(price))
 
+    else:
+        print("VENDA ETH por {:8f}".format(price))
+    print(" ")
+    dt = order.executed.exbits[0].dt
+    datetm = datetime.utcfromtimestamp(dt)
+    #print("Exbits datetime(float):", datetm)
+    #print("Exbits price:", price)
+    
 
 class EMAStrategy(bt.Strategy):
     params = (
@@ -84,7 +70,7 @@ class EMAStrategy(bt.Strategy):
                          (order.executed.price,
                           order.executed.value,
                           order.executed.comm))
-
+                alert(order)
             self.bar_executed = len(self)
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
@@ -96,8 +82,8 @@ class EMAStrategy(bt.Strategy):
         if not trade.isclosed:
             return
 
-        print('OPERATION PROFIT, GROSS %.8f, NET %.8f' %
-                 (trade.pnl, trade.pnlcomm))
+        #print('OPERATION PROFIT, GROSS %.8f, NET %.8f' %
+        #         (trade.pnl, trade.pnlcomm))
     
     def next(self):
         # Simply log the closing price of the series from the reference
